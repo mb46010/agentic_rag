@@ -2,11 +2,18 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List
 
+from agentic_rag.executor.constants import DEFAULT_MAX_TOTAL_DOCS
 from agentic_rag.executor.state import Candidate, ExecutorState
+from agentic_rag.executor.utils import observe, with_error_handling
+
+logger = logging.getLogger(__name__)
 
 
+@observe
+@with_error_handling("finalize_evidence_pack")
 def finalize_evidence_pack(state: ExecutorState) -> Dict[str, Any]:
     plan = state.get("plan") or {}
     pool: List[Candidate] = list(state.get("evidence_pool") or [])
@@ -15,7 +22,7 @@ def finalize_evidence_pack(state: ExecutorState) -> Dict[str, Any]:
     pool.sort(key=lambda c: (c.rerank_score or c.rrf_score or c.vector_score or c.bm25_score or 0.0), reverse=True)
 
     stop_conditions = plan.get("stop_conditions") or {}
-    max_total_docs = int(stop_conditions.get("max_total_docs", 12))
+    max_total_docs = int(stop_conditions.get("max_total_docs", DEFAULT_MAX_TOTAL_DOCS))
     final = pool[:max_total_docs]
 
     # Build lightweight report
@@ -47,5 +54,7 @@ def finalize_evidence_pack(state: ExecutorState) -> Dict[str, Any]:
             for r in rounds
         ],
     }
+
+    logger.info(f"Finalized {len(final)} evidence chunks from {len(pool)} pooled candidates across {len(rounds)} rounds")
 
     return {"final_evidence": final, "retrieval_report": report}

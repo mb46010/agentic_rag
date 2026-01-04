@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List
 
 from agentic_rag.executor.state import Candidate, ExecutorState, RoundResult
+from agentic_rag.executor.utils import observe, with_error_handling
+
+logger = logging.getLogger(__name__)
 
 
+@observe
+@with_error_handling("should_continue")
 def should_continue(state: ExecutorState) -> Dict[str, Any]:
     plan = state.get("plan") or {}
     rounds_spec = plan.get("retrieval_rounds") or []
@@ -64,6 +70,11 @@ def should_continue(state: ExecutorState) -> Dict[str, Any]:
     stale = no_new_streak >= no_new_limit
 
     cont = not (reached_max or meets_conf or stale)
+
+    logger.info(
+        f"Round {idx}: novelty={novelty}, continue={cont}, "
+        f"reached_max={reached_max}, meets_conf={meets_conf}, stale={stale}"
+    )
 
     return {
         "evidence_pool": new_pool,

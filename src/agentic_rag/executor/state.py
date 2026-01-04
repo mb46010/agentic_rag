@@ -116,11 +116,11 @@ class CandidateKey:
     chunk_id: str
 
 
-@dataclass
+@dataclass(frozen=True)
 class Candidate:
     key: CandidateKey
     text: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=lambda: {})
 
     # Retrieval features
     bm25_rank: Optional[int] = None

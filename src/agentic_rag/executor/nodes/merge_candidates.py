@@ -2,11 +2,16 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from typing import Any, Dict, List, Tuple
 
 from agentic_rag.executor.adapters import FusionAdapter
+from agentic_rag.executor.constants import DEFAULT_RRF_K, DEFAULT_RRF_POOL_SIZE
 from agentic_rag.executor.state import Candidate, ExecutorState
+from agentic_rag.executor.utils import observe, with_error_handling
+
+logger = logging.getLogger(__name__)
 
 
 def _dedupe(cands: List[Candidate]) -> List[Candidate]:
@@ -26,6 +31,8 @@ def _dedupe(cands: List[Candidate]) -> List[Candidate]:
 
 
 def make_merge_candidates_node(fusion: FusionAdapter):
+    @observe
+    @with_error_handling("merge_candidates")
     def merge_candidates(state: ExecutorState) -> Dict[str, Any]:
         plan = state.get("plan") or {}
         rounds = plan.get("retrieval_rounds") or []
@@ -59,11 +66,13 @@ def make_merge_candidates_node(fusion: FusionAdapter):
 
         use_rrf = bool(round_spec.get("rrf", True))
         if use_rrf and ranked_lists:
-            fused = fusion.rrf(ranked_lists=ranked_lists, k=200, rrf_k=60)
+            fused = fusion.rrf(ranked_lists=ranked_lists, k=DEFAULT_RRF_POOL_SIZE, rrf_k=DEFAULT_RRF_K)
             merged = _dedupe(fused)
             merged.sort(key=lambda c: (c.rrf_score or 0.0), reverse=True)
         else:
             merged = _dedupe(raw)
+
+        logger.info(f"Merged {len(raw)} raw candidates to {len(merged)} unique candidates, rrf={use_rrf}")
 
         return {"round_candidates_merged": merged}
 

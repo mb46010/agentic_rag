@@ -2,14 +2,22 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict
 
 from agentic_rag.executor.state import ExecutorState
+from agentic_rag.executor.utils import observe, with_error_handling
+
+logger = logging.getLogger(__name__)
 
 
+@observe
+@with_error_handling("executor_gate")
 def executor_gate(state: ExecutorState) -> Dict[str, Any]:
     plan = state.get("plan") or {}
     strategy = plan.get("strategy")
+
+    logger.info(f"Executor gate: strategy={strategy}")
 
     if strategy in ("direct_answer", "clarify_then_retrieve", "defer_or_refuse"):
         # Executor does not run retrieval in these strategies.

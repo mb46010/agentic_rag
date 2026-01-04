@@ -103,6 +103,7 @@ def make_normalize_gate_node(llm):
             "constraints": result.constraints,
             "guardrails": result.guardrails,
             "clarification": result.clarification,
+            "intake_version": "intake_v1",  # Track version for evaluation stability
         }
 
         # Include only if present (keeps state tidy)

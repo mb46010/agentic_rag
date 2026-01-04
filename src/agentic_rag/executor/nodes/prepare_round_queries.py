@@ -2,10 +2,14 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Any, Dict, List
 
 from agentic_rag.executor.adapters import HyDEAdapter
 from agentic_rag.executor.state import ExecutorState
+from agentic_rag.executor.utils import observe, with_error_handling
+
+logger = logging.getLogger(__name__)
 
 
 def _preserve_literal_terms(queries: List[str], must_preserve_terms: List[str]) -> List[str]:
@@ -34,6 +38,8 @@ def _preserve_literal_terms(queries: List[str], must_preserve_terms: List[str]) 
 
 
 def make_prepare_round_queries_node(hyde: HyDEAdapter):
+    @observe
+    @with_error_handling("prepare_round_queries")
     def prepare_round_queries(state: ExecutorState) -> Dict[str, Any]:
         plan = state.get("plan") or {}
         rounds = plan.get("retrieval_rounds") or []
@@ -67,6 +73,9 @@ def make_prepare_round_queries_node(hyde: HyDEAdapter):
             queries = [state.get("normalized_query", "")] + derived
 
         queries = _preserve_literal_terms(queries, must_preserve)
+
+        logger.info(f"Prepared {len(queries)} queries for round {idx}, use_hyde={use_hyde and not must_match_exactly}")
+        logger.debug(f"Queries: {queries}")
 
         return {"round_queries": queries}
 
