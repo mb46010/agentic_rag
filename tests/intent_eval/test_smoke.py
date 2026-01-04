@@ -44,8 +44,8 @@ def test_intake_graph_smoke(llm):
     out = graph.invoke(state_in)
 
     run_id = os.environ.get("INTENT_EVAL_RUN_ID", "local")
-    write_artifact(ARTIFACTS_DIR, run_id, "input", state_in)
-    write_artifact(ARTIFACTS_DIR, run_id, "output", out)
+    write_artifact(ARTIFACTS_DIR, run_id, "smoke", "input", state_in)
+    write_artifact(ARTIFACTS_DIR, run_id, "smoke", "output", out)
 
     errors = out.get("errors") or []
     assert errors == [], f"Smoke test failed with errors: {errors}"

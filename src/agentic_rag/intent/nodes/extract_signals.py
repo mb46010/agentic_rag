@@ -1,19 +1,30 @@
 # src/agentic_rag/intent/nodes/extract_signals.py
-
 import logging
+import os
 from typing import Any, Dict, List, Literal, Optional
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 # If this import fails in your env, switch to:
 # from langfuse.decorators import observe
-from langfuse import observe
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from agentic_rag.intent.prompts.extract_signals import EXTRACT_SIGNALS_PROMPT
 from agentic_rag.intent.state import ArtifactFlag, IntakeState
 
 logger = logging.getLogger(__name__)
+
+OBSERVE_ENABLED = os.getenv("LANGFUSE_ENABLED", "1") == "1"
+
+if OBSERVE_ENABLED:
+    from langfuse.decorators import observe
+else:
+
+    def observe(fn=None, **kwargs):
+        def _wrap(f):
+            return f
+
+        return _wrap(fn) if fn else _wrap
 
 
 class EntityModel(BaseModel):

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
+from dotenv import load_dotenv
 from json_utils import write_artifact
 
 from agentic_rag.intent.graph import make_intake_graph
@@ -11,6 +12,12 @@ from agentic_rag.intent.graph import make_intake_graph
 # ---- Config ----
 CASES_DIR = Path("tests/intent_eval/cases/intake_v1")
 ARTIFACTS_DIR = Path("artifacts/intent_eval")
+
+# Load .env once for the whole test session
+# if os.getenv("PYTEST_CURRENT_TEST"):
+load_dotenv()
+
+MAX_RETRIES = 1
 
 
 def _load_json(path: Path) -> Dict[str, Any]:
@@ -25,7 +32,7 @@ def _list_case_files() -> List[Path]:
 
 
 def _run_intake_graph(llm, case: Dict[str, Any]) -> Dict[str, Any]:
-    graph = make_intake_graph(llm, max_retries=3)
+    graph = make_intake_graph(llm, max_retries=MAX_RETRIES)
     # IntakeState expects "messages" at minimum
     state_in = {
         "messages": case["messages"],

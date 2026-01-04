@@ -16,6 +16,8 @@ ARTIFACTS_DIR = Path("artifacts/intent_eval")
 if os.getenv("PYTEST_CURRENT_TEST"):
     load_dotenv()
 
+os.environ.setdefault("LANGFUSE_ENABLED", "0")
+
 
 def _ensure_artifacts_dir() -> None:
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)

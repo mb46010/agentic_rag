@@ -11,6 +11,6 @@ def get_default_model():
     model = init_chat_model(
         model="gpt-4.1",
         temperature=0.0,
-        max_tokens=5000,
+        max_tokens=25000,
     )
     return model

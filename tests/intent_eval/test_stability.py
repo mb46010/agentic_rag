@@ -4,9 +4,12 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import pytest
+from dotenv import load_dotenv
 from json_utils import write_artifact
 
 from agentic_rag.intent.graph import make_intake_graph
+
+load_dotenv()
 
 CASES_DIR = Path("tests/intent_eval/cases/intake_v1")
 ARTIFACTS_DIR = Path("artifacts/intent_eval")
@@ -14,6 +17,8 @@ ARTIFACTS_DIR = Path("artifacts/intent_eval")
 # Set via env when you want to tighten later
 STABILITY_RUNS = int(os.environ.get("INTENT_EVAL_STABILITY_RUNS", "3"))
 FAIL_ON_INSTABILITY = os.environ.get("INTENT_EVAL_FAIL_ON_INSTABILITY", "0") == "1"
+
+MAX_RETRIES = 1
 
 
 def _load_json(path: Path) -> Dict[str, Any]:
@@ -28,7 +33,7 @@ def _list_case_files() -> List[Path]:
 
 
 def _run_once(llm, case: Dict[str, Any]) -> Dict[str, Any]:
-    graph = make_intake_graph(llm, max_retries=3)
+    graph = make_intake_graph(llm, max_retries=MAX_RETRIES)
     state_in = {"messages": case["messages"]}
     if "conversation_summary" in case:
         state_in["conversation_summary"] = case["conversation_summary"]

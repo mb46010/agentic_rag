@@ -3,16 +3,28 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langfuse import observe
 from pydantic import BaseModel, Field, ValidationError
 
 from agentic_rag.intent.prompts.normalize import NORMALIZE_PROMPT
 from agentic_rag.intent.state import Clarification, Constraints, Guardrails, IntakeState
 
 logger = logging.getLogger(__name__)
+
+OBSERVE_ENABLED = os.getenv("LANGFUSE_ENABLED", "1") == "1"
+
+if OBSERVE_ENABLED:
+    from langfuse.decorators import observe
+else:
+
+    def observe(fn=None, **kwargs):
+        def _wrap(f):
+            return f
+
+        return _wrap(fn) if fn else _wrap
 
 
 class NormalizeModel(BaseModel):

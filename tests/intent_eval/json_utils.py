@@ -31,8 +31,8 @@ def json_default(o: Any):
     return str(o)
 
 
-def write_artifact(base_dir: Path, run_id: str, filename: str, payload: Any) -> Path:
-    out_dir = base_dir / run_id
+def write_artifact(base_dir: Path, run_id: str, case_id: str, filename: str, payload: Any) -> Path:
+    out_dir = base_dir / run_id / case_id
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / filename
     with out_path.open("w", encoding="utf-8") as f:

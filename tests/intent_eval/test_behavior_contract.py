@@ -17,13 +17,18 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
+from dotenv import load_dotenv
 from json_utils import write_artifact
 
 from agentic_rag.intent.graph import make_intake_graph
 
+load_dotenv()
+
 CASES_DIR = Path("tests/intent_eval/cases/intake_v1")
 EXPECTED_DIR = Path("tests/intent_eval/expected/intake_v1")
 ARTIFACTS_DIR = Path("artifacts/intent_eval")
+
+MAX_RETRIES = 1
 
 
 def _load_json(path: Path) -> Dict[str, Any]:
@@ -42,7 +47,7 @@ def _expected_path_for(case_path: Path) -> Path:
 
 
 def _run_intake_graph(llm, case: Dict[str, Any]) -> Dict[str, Any]:
-    graph = make_intake_graph(llm, max_retries=3)
+    graph = make_intake_graph(llm, max_retries=MAX_RETRIES)
     state_in = {"messages": case["messages"]}
     if "conversation_summary" in case:
         state_in["conversation_summary"] = case["conversation_summary"]

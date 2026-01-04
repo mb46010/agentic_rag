@@ -1,7 +1,10 @@
 ```bash
-pytest tests/intent_eval -q
+LANGFUSE_ENABLED=0 pytest -p no:langsmith tests/intent_eval -q
 
-pytest tests/intent_eval/test_schema_contract.py -q
+LANGFUSE_ENABLED=0 pytest -p no:langsmith tests/intent_eval/test_schema_contract.py -vv -s
+
+LANGFUSE_ENABLED=0 pytest -p no:langsmith tests/intent_eval/test_stability.py -vv -s
+
 ```
 
 ```tree
