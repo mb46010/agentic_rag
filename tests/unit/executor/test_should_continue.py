@@ -100,6 +100,8 @@ class TestShouldContinue:
         plan = {**sample_plan}
         plan["stop_conditions"]["max_rounds"] = 3
         plan["stop_conditions"]["confidence_threshold"] = 0.8
+        # Add enough rounds to avoid reaching max specs
+        plan["retrieval_rounds"] = plan["retrieval_rounds"] * 3
 
         state = {
             "plan": plan,
@@ -178,6 +180,10 @@ class TestShouldContinue:
         plan = {**sample_plan}
         plan["stop_conditions"]["max_rounds"] = 5
         plan["stop_conditions"]["no_new_information_rounds"] = 2
+        # Add enough rounds
+        plan["retrieval_rounds"] = plan["retrieval_rounds"] * 5
+        for i, r in enumerate(plan["retrieval_rounds"]):
+            plan["retrieval_rounds"][i] = {**r, "round_id": i}
 
         existing_pool = [Candidate(key=CandidateKey("doc1", "c1"), text="existing")]
         new_selected = [Candidate(key=CandidateKey("doc2", "c1"), text="new")]
