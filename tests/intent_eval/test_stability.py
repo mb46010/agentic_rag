@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
 import pytest
+from json_utils import write_artifact
 
 from agentic_rag.intent.graph import make_intake_graph
 
@@ -18,14 +19,6 @@ FAIL_ON_INSTABILITY = os.environ.get("INTENT_EVAL_FAIL_ON_INSTABILITY", "0") == 
 def _load_json(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def _write_artifact(run_id: str, case_id: str, name: str, payload: Any) -> None:
-    out_dir = ARTIFACTS_DIR / run_id
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{case_id}.{name}.json"
-    with out_path.open("w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
 
 
 def _list_case_files() -> List[Path]:
@@ -83,9 +76,9 @@ def test_stability_soft_fail(case_path: Path, llm):
         outputs.append(out)
         projections.append(_stable_projection(out))
 
-    _write_artifact(run_id, case_id, "stability.input", case)
-    _write_artifact(run_id, case_id, "stability.outputs", outputs)
-    _write_artifact(run_id, case_id, "stability.projections", projections)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "stability.input", case)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "stability.outputs", outputs)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "stability.projections", projections)
 
     # Hard fail if any run produced errors (stability is meaningless if it errored)
     for out in outputs:

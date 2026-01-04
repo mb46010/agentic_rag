@@ -1,24 +1,55 @@
 # src/agentic_rag/intent/nodes/extract_signals.py
 
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Literal, Optional
 
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+# If this import fails in your env, switch to:
+# from langfuse.decorators import observe
 from langfuse import observe
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from agentic_rag.intent.prompts.extract_signals import EXTRACT_SIGNALS_PROMPT
-from agentic_rag.intent.state import IntakeState
+from agentic_rag.intent.state import ArtifactFlag, IntakeState
 
 logger = logging.getLogger(__name__)
 
 
+class EntityModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str
+    type: Literal["product", "component", "org", "person", "doc_type", "concept", "other"]
+    confidence: Literal["low", "medium", "high"]
+
+
+class AcronymModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    text: str
+    expansion: Optional[str]  # None if unknown
+    confidence: Literal["low", "medium", "high"]
+
+
+class SignalsModel(BaseModel):
+    # For OpenAI structured outputs compatibility and general cleanliness:
+    # - default empty lists
+    # - forbid extra keys (prevents prompt drift)
+    model_config = ConfigDict(extra="forbid")
+
+    entities: List[EntityModel] = Field(default_factory=list)
+    acronyms: List[AcronymModel] = Field(default_factory=list)
+    artifact_flags: List[ArtifactFlag] = Field(default_factory=list)
+    literal_terms: List[str] = Field(default_factory=list)
+
+
 class ExtractSignalsModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     user_intent: str
     retrieval_intent: str
     answerability: str
-    complexity_flags: List[str]
-    signals: Dict[str, Any]
+    complexity_flags: List[str] = Field(default_factory=list)
+    signals: SignalsModel = Field(default_factory=SignalsModel)
 
 
 def make_extract_signals_node(llm):
@@ -29,7 +60,9 @@ def make_extract_signals_node(llm):
         ]
     )
 
-    model = llm.with_structured_output(ExtractSignalsModel)
+    # Keep this while you iterate; it's tolerant to schema quirks.
+    # Once stable, you can try removing method="function_calling" to use strict structured outputs.
+    model = llm.with_structured_output(ExtractSignalsModel, method="function_calling")
     chain = prompt | model
 
     @observe
@@ -48,16 +81,15 @@ def make_extract_signals_node(llm):
                 ]
             }
 
-        # Pull fields from previous normalize_gate step (use conservative defaults)
+        # Pull fields from normalize_gate step (conservative defaults)
         normalized_query = state.get("normalized_query", "")
-        constraints = state.get("constraints", {}) or {}
-        guardrails = state.get("guardrails", {}) or {}
-        clarification = state.get("clarification", {}) or {}
+        constraints = state.get("constraints") or {}
+        guardrails = state.get("guardrails") or {}
+        clarification = state.get("clarification") or {}
         language = state.get("language", None)
         locale = state.get("locale", None)
 
         try:
-            # Depending on LangChain version/model wrapper, this may return a dict OR a BaseModel.
             raw = chain.invoke(
                 {
                     "messages": user_messages,
@@ -70,7 +102,7 @@ def make_extract_signals_node(llm):
                 }
             )
 
-            # Normalize to a Pydantic object for consistent attribute access.
+            # Normalize to a Pydantic object for consistent access
             result = ExtractSignalsModel.model_validate(raw)
 
         except ValidationError as e:
@@ -98,12 +130,13 @@ def make_extract_signals_node(llm):
                 ]
             }
 
+        # Return JSON-serializable values into LangGraph state
         return {
             "user_intent": result.user_intent,
             "retrieval_intent": result.retrieval_intent,
             "answerability": result.answerability,
             "complexity_flags": result.complexity_flags,
-            "signals": result.signals,
+            "signals": result.signals.model_dump(),
         }
 
     return extract_signals

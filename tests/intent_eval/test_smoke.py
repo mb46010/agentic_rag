@@ -1,24 +1,31 @@
 # tests/intent_eval/test_smoke.py
+"""Smoke test for the intake graph.
+
+Runs the intake graph end-to-end on a minimal input and checks that it returns the expected top-level keys.
+
+Usage:
+    pytest tests/intent_eval/test_smoke.py
+"""
 
 import os
 from pathlib import Path
 from typing import Any, Dict
 
 import pytest
+from dotenv import load_dotenv
 
 from agentic_rag.intent.graph import make_intake_graph
+
+load_dotenv(".env", override=False)
 
 ARTIFACTS_DIR = Path("artifacts/intent_eval")
 
 
-def _write_artifact(run_id: str, name: str, payload: Any) -> None:
-    out_dir = ARTIFACTS_DIR / run_id
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"smoke.{name}.json"
-    import json
+import json
+from pathlib import Path
 
-    with out_path.open("w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
+from json_utils import write_artifact
+from langchain_core.messages import BaseMessage
 
 
 def test_intake_graph_smoke(llm):
@@ -37,8 +44,8 @@ def test_intake_graph_smoke(llm):
     out = graph.invoke(state_in)
 
     run_id = os.environ.get("INTENT_EVAL_RUN_ID", "local")
-    _write_artifact(run_id, "input", state_in)
-    _write_artifact(run_id, "output", out)
+    write_artifact(ARTIFACTS_DIR, run_id, "input", state_in)
+    write_artifact(ARTIFACTS_DIR, run_id, "output", out)
 
     errors = out.get("errors") or []
     assert errors == [], f"Smoke test failed with errors: {errors}"

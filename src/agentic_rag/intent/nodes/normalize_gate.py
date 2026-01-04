@@ -5,13 +5,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from agentic_rag.intent.types import Clarification, Constraints, Guardrails
-from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langfuse import observe
 from pydantic import BaseModel, Field, ValidationError
 
 from agentic_rag.intent.prompts.normalize import NORMALIZE_PROMPT
-from agentic_rag.intent.state import IntakeState
+from agentic_rag.intent.state import Clarification, Constraints, Guardrails, IntakeState
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +24,7 @@ class NormalizeModel(BaseModel):
     locale: Optional[str] = None
 
 
-def make_normalize_node(llm):
+def make_normalize_gate_node(llm):
     # Build prompt once (faster, less error-prone)
     prompt = ChatPromptTemplate.from_messages(
         [
@@ -64,7 +63,7 @@ def make_normalize_node(llm):
             return {
                 "errors": [
                     {
-                        "node": "n1_normalize",
+                        "node": "normalize_gate",
                         "type": "model_output_parse",
                         "message": "Structured output failed validation.",
                         "retryable": True,  # often worth retrying once with same prompt
@@ -77,7 +76,7 @@ def make_normalize_node(llm):
             return {
                 "errors": [
                     {
-                        "node": "n1_normalize",
+                        "node": "normalize_gate",
                         "type": "runtime_error",
                         "message": str(e),
                         "retryable": True,

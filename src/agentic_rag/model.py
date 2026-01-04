@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 def get_default_model():
     model = init_chat_model(
-        model_name="gpt-4.1",
+        model="gpt-4.1",
         temperature=0.0,
         max_tokens=5000,
     )

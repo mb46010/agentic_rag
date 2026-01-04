@@ -103,14 +103,14 @@ Heuristics:
 Return a JSON object with these keys (exact spelling). Values must follow the guidance below.
 
 signals.entities:
-- A list of objects: { "text": string, "type": string, "confidence": string }
+- A list of objects: {{ "text": string, "type": string, "confidence": string }}
 - type must be one of: product, component, org, person, doc_type, concept, other
 - confidence must be one of: low, medium, high
 - Extract only entities explicitly mentioned or strongly implied by the text.
 - Do NOT invent specific product versions, systems, or organizations.
 
 signals.acronyms:
-- A list of objects: { "text": string, "expansion": string|null, "confidence": string }
+- A list of objects: {{ "text": string, "expansion": string|null, "confidence": string }}
 - If you do not know the expansion with high confidence, set expansion to null and confidence to low/medium.
 - If guardrails/clarification indicates ambiguity, prefer null expansions.
 

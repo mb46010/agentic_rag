@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 import pytest
+from json_utils import write_artifact
 
 from agentic_rag.intent.graph import make_intake_graph
 
@@ -28,14 +29,6 @@ ARTIFACTS_DIR = Path("artifacts/intent_eval")
 def _load_json(path: Path) -> Dict[str, Any]:
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
-
-
-def _write_artifact(run_id: str, case_id: str, name: str, payload: Any) -> None:
-    out_dir = ARTIFACTS_DIR / run_id
-    out_dir.mkdir(parents=True, exist_ok=True)
-    out_path = out_dir / f"{case_id}.{name}.json"
-    with out_path.open("w", encoding="utf-8") as f:
-        json.dump(payload, f, indent=2, ensure_ascii=False)
 
 
 def _list_case_files() -> List[Path]:
@@ -80,9 +73,9 @@ def test_behavior_contract_hard_fail(case_path: Path, llm):
 
     out = _run_intake_graph(llm, case)
 
-    _write_artifact(run_id, case_id, "input", case)
-    _write_artifact(run_id, case_id, "expected", expected)
-    _write_artifact(run_id, case_id, "final_state", out)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "input", case)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "expected", expected)
+    write_artifact(ARTIFACTS_DIR, run_id, case_id, "final_state", out)
 
     errors = out.get("errors") or []
     assert errors == [], f"Graph returned errors: {errors}"

@@ -85,3 +85,4 @@ output_test_smart/*
 output_old/*
 specs/workflows.md
 data/**/output_*.json
+artifacts/*

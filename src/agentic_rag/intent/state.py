@@ -203,12 +203,12 @@ class IntakeState(TypedDict, total=False):
     locale: Optional[str]
 
     # Node 2: Signals for Planning
-    # Node 2: Signals for Planning
     user_intent: str
     retrieval_intent: str
     answerability: str
     complexity_flags: List[str]
-    signals: Dict[str, Any]
+    # needed by .with_structured_output
+    signals: Signals
     # user_intent: UserIntent
     # retrieval_intent: RetrievalIntent
     # answerability: Answerability
