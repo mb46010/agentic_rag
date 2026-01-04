@@ -4,13 +4,16 @@ import os
 import uuid
 from pathlib import Path
 from typing import Iterator, Optional
-
+from dotenv import load_dotenv
 import pytest
 
 from agentic_rag.model import get_default_model
 
 ARTIFACTS_DIR = Path("artifacts/intent_eval")
 
+# Load .env once for the whole test session
+if os.getenv("PYTEST_CURRENT_TEST"):
+    load_dotenv()
 
 def _ensure_artifacts_dir() -> None:
     ARTIFACTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -21,7 +24,7 @@ def _env(name: str) -> Optional[str]:
     v = os.getenv(name)
     return v.strip() if v and v.strip() else None
 
-
+§
 @pytest.fixture(scope="session", autouse=True)
 def _session_setup() -> None:
     _ensure_artifacts_dir()
