@@ -1,0 +1,10 @@
+{
+    "case_id": "c002_ambiguous_acronym_blocking",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Should we use MCP here? What are the tradeoffs?"
+        }
+    ],
+    "notes": "MCP is ambiguous. Expect clarification needed + blocking with ambiguous_acronym."
+}

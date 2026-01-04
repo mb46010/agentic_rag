@@ -1,0 +1,10 @@
+{
+    "case_id": "c001_internal_procedure_no_code",
+    "messages": [
+        {
+            "role": "user",
+            "content": "How should we structure an intake subgraph in LangGraph for agentic RAG? No code - just high level best practices."
+        }
+    ],
+    "notes": "Checks: constraints.format captures no_code; retrieval intent procedure/background; answerability internal_corpus; clarity is fine."
+}

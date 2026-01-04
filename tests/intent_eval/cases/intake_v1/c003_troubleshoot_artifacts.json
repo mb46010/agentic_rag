@@ -1,0 +1,10 @@
+{
+    "case_id": "c003_troubleshoot_artifacts",
+    "messages": [
+        {
+            "role": "user",
+            "content": "My git push fails with: error: src refspec main does not match any. What does it mean and how do I fix it?"
+        }
+    ],
+    "notes": "Checks: troubleshoot intent; examples/procedure retrieval; artifact flags include quoted/error-ish string; literal term extraction helps later."
+}

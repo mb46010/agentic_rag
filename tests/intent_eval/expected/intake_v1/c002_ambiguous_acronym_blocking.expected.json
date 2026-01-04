@@ -1,0 +1,12 @@
+{
+    "clarification": {
+        "needed": true,
+        "blocking": true,
+        "reasons_contains": [
+            "ambiguous_acronym"
+        ]
+    },
+    "user_intent": "decide",
+    "retrieval_intent": "background",
+    "answerability": "mixed"
+}
