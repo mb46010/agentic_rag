@@ -55,7 +55,8 @@ flowchart LR
   N2 --> E[END]
 ```
 
-# Node: normalize_gate
+## Node: normalize_gate
+
 Responsibilities:
 
 - validate presence and shape of messages
@@ -88,7 +89,8 @@ write errors with node, type, retryable, details
 avoid throwing exceptions
 
 
-# Node: extract_signals
+## Node: extract_signals
+
 Responsibilities:
 
 
@@ -161,8 +163,9 @@ set requires_strict_precision in complexity_flags
 
 Later planning/execution can use this to avoid HyDE and reduce semantic drift.
 
-# Evaluation targets
-## Minimum quality checks:
+## Evaluation targets
+
+### Minimum quality checks:
 
 
 normalized_query non-empty
@@ -180,7 +183,7 @@ artifact flags set for stacktraces/paths/URLs
 user intent classification matches rubric for a small reviewed case set
 
 
-# Known risks
+## Known risks
 
 
 Over-classifying everything as explain

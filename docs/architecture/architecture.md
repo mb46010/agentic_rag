@@ -29,9 +29,9 @@ flowchart LR
 
   I -->|clarification needed| Q[Clarification question]
   Q --> U
+```
 
-
-# Subgraph responsibilities
+## Subgraph responsibilities
 
 ## 1) Intake subgraph (intent graph)
 
@@ -107,7 +107,7 @@ Design principle:
 
 See: architecture_executor.md
 
-4) Answer node
+## 4) Answer node
 
 Inputs:
 
@@ -123,7 +123,7 @@ Design principle:
 
 If coverage is missing blockers, ask clarification instead of guessing
 
-# Contracts and traceability
+## Contracts and traceability
 
 ## State contracts
 
@@ -159,8 +159,9 @@ At minimum:
 
 These are enforced in executor gate and per-round logic.
 
-#Evaluation architecture
-## Test categories
+## Evaluation architecture
+
+### Test categories
 
 Schema contract (hard fail)
 
@@ -180,7 +181,7 @@ Stability (soft fail initially)
 
 - reruns same cases multiple times and checks drift in key fields
 
-# Artifacts
+## Artifacts
 
 Tests and tools write artifacts to disk for review:
 
@@ -192,7 +193,7 @@ Tests and tools write artifacts to disk for review:
 
 - per-round retrieval reports (executor)
 
-# Extension points
+## Extension points
 
 Retrieval backend adapters (Azure AI Search, Weaviate, pgvector, etc.)
 
@@ -202,70 +203,8 @@ Policy constraints (sensitivity, ACL filters)
 
 Optional: caching layer for retrieval and rerank results
 
-Non-goals (for now)
+## Non-goals (for now)
 
-Full observability stack (Langfuse, OTEL)
-
-Multi-tenant governance and auditing
-
-Advanced tool use beyond retrieval (browsing, SQL, etc.)
-
-
-
-
-
-# Intent Intake Subgraph Architecture
-
-The intent (intake) subgraph provides a stable "first look" at the user request. It extracts normalized inputs and planning signals while keeping this step separate from planning and retrieval.
-
-## Purpose
-
-- Standardize the request for logging and downstream planning
-- Identify risk and sensitivity signals early
-- Detect ambiguity and decide whether clarification is blocking
-- Extract structured signals that improve later planning and retrieval
-
-Intake must not:
-- retrieve documents
-- answer the user
-- generate long reasoning text
-
-## Inputs
-
-Primary input:
-- `messages`: chat history messages (LangChain message objects or role/content dicts)
-
-Optional inputs:
-- `user_context_info`: app-provided context (ACL, org metadata, role)
-- `conversation_summary`: optional summary from upstream system
-
-## Outputs
-
-The intake subgraph writes to `IntakeState`:
-
-1) Normalize + gate
-- `normalized_query`: cleaned, minimal query for downstream use
-- `constraints`: explicit format, prohibitions, domain hints, nonfunctional constraints
-- `guardrails`: time sensitivity, context dependency, sensitivity, pii flag
-- `clarification`: needed, reasons (and whether blocking if you chose to model that)
-
-2) Signals for planning
-- `user_intent`: explain, lookup, compare, decide, troubleshoot, summarize, extract, draft, plan, other
-- `retrieval_intent`: none, definition, procedure, evidence, examples, verification, background, mixed
-- `answerability`: internal_corpus, external, user_context, reasoning_only, mixed
-- `complexity_flags`: multi_intent, multi_domain, requires_synthesis, requires_strict_precision, long_query
-- `signals`: entities, acronyms, artifact flags, literal terms
-
-3) Meta
-- `intake_version`: version string
-- `debug_notes`: short, non-CoT notes (avoid chain-of-thought)
-
-## Node breakdown
-
-The intake subgraph is intentionally small and decomposed:
-
-```mermaid
-flowchart LR
-  S[START] --> N1[normalize_gate]
-  N1 --> N2[extract_signals]
-  N2 --> E[END]
+- Full observability stack (Langfuse, OTEL)
+- Multi-tenant governance and auditing
+- Advanced tool use beyond retrieval (browsing, SQL, etc.)

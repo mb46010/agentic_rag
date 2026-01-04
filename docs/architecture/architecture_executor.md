@@ -62,9 +62,11 @@ flowchart LR
   D -->|stop| F
 
   F --> E[END]
+```
 
-# Node responsibilities
-1) executor_gate
+## Node responsibilities
+
+### 1) executor_gate
 
 
 validate plan strategy and required fields
@@ -91,7 +93,7 @@ current_round_index = 0
 continue_search = true/false
 
 
-2) prepare_round_queries
+### 2) prepare_round_queries
 
 
 start from plan query_variants
@@ -125,7 +127,7 @@ Key output:
 round_queries
 
 
-3) run_retrieval
+### 3) run_retrieval
 
 
 for each query and retrieval mode:
@@ -150,7 +152,7 @@ Key output:
 round_candidates_raw
 
 
-4) merge_candidates
+### 4) merge_candidates
 
 
 dedupe by stable identity: doc_id + chunk_id
@@ -168,7 +170,7 @@ Key output:
 round_candidates_merged
 
 
-5) rerank_candidates
+### 5) rerank_candidates
 
 
 if enabled: rerank top N candidates using cross-encoder
@@ -186,7 +188,7 @@ Key output:
 round_candidates_reranked
 
 
-6) select_evidence
+### 6) select_evidence
 
 
 select up to max_docs with diversity constraints:
@@ -214,7 +216,8 @@ Key output:
 round_selected
 
 
-7) grade_coverage
+### 7) grade_coverage
+
 Bounded grading step:
 
 
@@ -253,7 +256,8 @@ Key output:
 coverage
 
 
-8) should_continue
+### 8) should_continue
+
 Deterministic stopping policy:
 
 
@@ -296,7 +300,7 @@ evidence_pool
 rounds log
 
 
-9) finalize_evidence_pack
+### 9) finalize_evidence_pack
 
 
 sort pooled evidence by best available score
@@ -317,7 +321,8 @@ final_evidence
 retrieval_report
 
 
-Adapter model
+## Adapter model
+
 The executor interacts with the outside world only through adapters:
 
 
@@ -371,7 +376,9 @@ later replaced with a constrained LLM grader
 
 
 This design allows you to swap backends without rewriting the graph.
-Budget and safety
+
+## Budget and safety
+
 Hard caps should be enforced before expensive steps:
 
 
@@ -396,7 +403,8 @@ apply ACL filters based on user_context_info
 refuse retrieval for restricted data if guardrails require
 
 
-Evaluation targets
+## Evaluation targets
+
 Executor evaluations are best split into two layers:
 
 

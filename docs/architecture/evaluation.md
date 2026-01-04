@@ -265,5 +265,3 @@ Later, when retrieval is real:
 add retrieval correctness tests with mocked adapters
 
 add end-to-end evals (Ragas/deepeval) only after you have stable execution traces
-
-::contentReference[oaicite:0]{index=0}
