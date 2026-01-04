@@ -52,6 +52,11 @@ Use one of these canonical labels (exact spelling):
 - plan
 - other
 
+Guidelines:
+- If user asks “how should ... structure / build / steps / architecture” -> plan
+- If user asks “error / fails / stacktrace / how fix” -> troubleshoot
+- If user asks “what is / overview / define / explain / teach” -> explain
+
 If multiple are present, pick the dominant one and add "multi_intent" to complexity_flags.
 
 2) retrieval_intent (string)
