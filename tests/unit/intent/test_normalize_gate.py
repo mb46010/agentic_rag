@@ -1,11 +1,12 @@
 # tests/unit/intent/test_normalize_gate.py
 """Unit tests for normalize_gate node."""
 
-import pytest
-from pydantic import ValidationError
 from unittest.mock import MagicMock, patch
 
-from agentic_rag.intent.nodes.normalize_gate import make_normalize_gate_node, NormalizeModel
+import pytest
+from pydantic import ValidationError
+
+from agentic_rag.intent.nodes.normalize_gate import NormalizeModel, make_normalize_gate_node
 
 
 class TestNormalizeGateNode:
@@ -64,15 +65,12 @@ class TestNormalizeGateNode:
             locale=mock_normalize_output["locale"],
         )
 
-        # Mock the prompt template and chain
-        with patch('agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate') as mock_prompt:
-            mock_chain = MagicMock()
-            mock_chain.invoke.return_value = mock_result
-            # Setup the pipe operator to return the mock chain
-            mock_prompt.from_messages.return_value.__or__ = lambda self, other: mock_chain
+        # Mock the chain behavior on mock_llm
+        mock_llm.with_structured_output.side_effect = None
+        mock_llm.with_structured_output.return_value.invoke.return_value = mock_result
 
-            node = make_normalize_gate_node(mock_llm)
-            result = node(sample_state)
+        node = make_normalize_gate_node(mock_llm)
+        result = node(sample_state)
 
         # Verify structure
         assert "normalized_query" in result
@@ -88,7 +86,7 @@ class TestNormalizeGateNode:
         assert result["locale"] == "en-US"
 
         # Verify chain was called
-        assert mock_chain.invoke.called
+        assert mock_llm.with_structured_output.return_value.invoke.called
 
     def test_normalize_gate_validation_error(self, mock_llm, sample_state):
         """Test error handling when LLM output fails validation."""
@@ -97,6 +95,7 @@ class TestNormalizeGateNode:
         mock_chain.invoke.side_effect = ValidationError.from_exception_data(
             "test", [{"type": "missing", "loc": ("normalized_query",), "msg": "Field required"}]
         )
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_normalize_gate_node(mock_llm)
@@ -116,6 +115,7 @@ class TestNormalizeGateNode:
         # Mock chain that raises generic exception
         mock_chain = MagicMock()
         mock_chain.invoke.side_effect = Exception("Network error")
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_normalize_gate_node(mock_llm)
@@ -143,6 +143,7 @@ class TestNormalizeGateNode:
 
         mock_chain = MagicMock()
         mock_chain.invoke.return_value = mock_result
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_normalize_gate_node(mock_llm)

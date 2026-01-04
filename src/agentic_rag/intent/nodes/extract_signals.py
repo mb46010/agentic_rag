@@ -10,7 +10,14 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from agentic_rag.intent.prompts.extract_signals import EXTRACT_SIGNALS_PROMPT
-from agentic_rag.intent.state import ArtifactFlag, IntakeState
+from agentic_rag.intent.state import (
+    Answerability,
+    ArtifactFlag,
+    ComplexityFlag,
+    IntakeState,
+    RetrievalIntent,
+    UserIntent,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,10 +63,10 @@ class SignalsModel(BaseModel):
 class ExtractSignalsModel(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    user_intent: str
-    retrieval_intent: str
-    answerability: str
-    complexity_flags: List[str] = Field(default_factory=list)
+    user_intent: UserIntent
+    retrieval_intent: RetrievalIntent
+    answerability: Answerability
+    complexity_flags: List[ComplexityFlag] = Field(default_factory=list)
     signals: SignalsModel = Field(default_factory=SignalsModel)
 
 
@@ -101,7 +108,8 @@ def make_extract_signals_node(llm):
         locale = state.get("locale", None)
 
         try:
-            raw = chain.invoke(
+            # Use direct invocation instead of | pipe for better testability and stability with mocks
+            prompt_val = prompt.invoke(
                 {
                     "messages": user_messages,
                     "normalized_query": normalized_query,
@@ -112,9 +120,15 @@ def make_extract_signals_node(llm):
                     "locale": locale,
                 }
             )
+            raw = model.invoke(prompt_val)
 
-            # Normalize to a Pydantic object for consistent access
-            result = ExtractSignalsModel.model_validate(raw)
+            # Support both dict and Pydantic object (for testing and LLM variation)
+            if isinstance(raw, ExtractSignalsModel):
+                result = raw
+            elif hasattr(raw, "model_dump"):  # Handle potential duck-typing/other models
+                result = ExtractSignalsModel.model_validate(raw.model_dump())
+            else:
+                result = ExtractSignalsModel.model_validate(raw)
 
         except ValidationError as e:
             return {

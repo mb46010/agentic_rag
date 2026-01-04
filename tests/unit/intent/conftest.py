@@ -17,13 +17,12 @@ def mock_llm():
     llm = MagicMock()
 
     # Mock with_structured_output to return a mock that can invoke
-    def with_structured_output_side_effect(schema, **kwargs):
+    def default_with_structured_output(schema, **kwargs):
         mock_chain = MagicMock()
-        # Store schema for potential validation
         mock_chain._schema = schema
         return mock_chain
 
-    llm.with_structured_output = MagicMock(side_effect=with_structured_output_side_effect)
+    llm.with_structured_output = MagicMock(side_effect=default_with_structured_output)
 
     return llm
 
@@ -31,9 +30,7 @@ def mock_llm():
 @pytest.fixture
 def sample_messages():
     """Sample messages for testing."""
-    return [
-        {"role": "user", "content": "How do I configure Azure OpenAI for production?"}
-    ]
+    return [{"role": "user", "content": "How do I configure Azure OpenAI for production?"}]
 
 
 @pytest.fixture
@@ -82,9 +79,7 @@ def mock_extract_signals_output():
         "answerability": "internal_corpus",
         "complexity_flags": ["requires_synthesis"],
         "signals": {
-            "entities": [
-                {"text": "Azure OpenAI", "type": "product", "confidence": "high"}
-            ],
+            "entities": [{"text": "Azure OpenAI", "type": "product", "confidence": "high"}],
             "acronyms": [],
             "artifact_flags": [],
             "literal_terms": [],

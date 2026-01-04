@@ -1,8 +1,9 @@
 # tests/unit/intent/test_normalize_gate_simple.py
 """Simplified unit tests for normalize_gate node focusing on testable logic."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 
 from agentic_rag.intent.nodes.normalize_gate import NormalizeModel
 
@@ -65,9 +66,9 @@ class TestNormalizeModel:
         """Test NormalizeModel field types."""
         model = NormalizeModel(
             normalized_query="test",
-            constraints={"domain": ["test"]},
+            constraints={"domain": ["azure"]},
             guardrails={"time_sensitivity": "low"},
-            clarification={"needed": True, "reasons": ["test"]},
+            clarification={"needed": True, "reasons": ["missing_version"]},
         )
         assert isinstance(model.normalized_query, str)
         assert isinstance(model.constraints, dict)
@@ -92,10 +93,11 @@ class TestNormalizeGateNodeLogic:
         )
 
         # Mock the chain behavior
-        with patch('agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate'):
+        with patch("agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate"):
             mock_chain = MagicMock()
             mock_chain.invoke.return_value = mock_result
-            mock_llm.with_structured_output.return_value.__or__ = lambda self, other: mock_chain
+            mock_llm.with_structured_output.side_effect = None
+            mock_llm.with_structured_output.return_value = mock_chain
 
             node = make_normalize_gate_node(mock_llm)
             # Call with valid state
@@ -146,10 +148,11 @@ class TestNormalizeGateNodeLogic:
             locale="es-MX",
         )
 
-        with patch('agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate'):
+        with patch("agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate"):
             mock_chain = MagicMock()
             mock_chain.invoke.return_value = mock_result
-            mock_llm.with_structured_output.return_value.__or__ = lambda self, other: mock_chain
+            mock_llm.with_structured_output.side_effect = None
+            mock_llm.with_structured_output.return_value = mock_chain
 
             node = make_normalize_gate_node(mock_llm)
             result = node({"messages": [{"role": "user", "content": "test"}]})
@@ -173,10 +176,11 @@ class TestNormalizeGateNodeLogic:
             locale=None,
         )
 
-        with patch('agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate'):
+        with patch("agentic_rag.intent.nodes.normalize_gate.ChatPromptTemplate"):
             mock_chain = MagicMock()
             mock_chain.invoke.return_value = mock_result
-            mock_llm.with_structured_output.return_value.__or__ = lambda self, other: mock_chain
+            mock_llm.with_structured_output.side_effect = None
+            mock_llm.with_structured_output.return_value = mock_chain
 
             node = make_normalize_gate_node(mock_llm)
             result = node({"messages": [{"role": "user", "content": "test"}]})

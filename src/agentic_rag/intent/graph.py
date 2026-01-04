@@ -23,13 +23,13 @@ def make_intake_graph(llm, max_retries: int = 3):
     intent_graph_builder.add_node(
         "normalize_gate",
         make_normalize_gate_node(llm),
-        retry_policy=retry_policy,
+        retry=retry_policy,
     )
 
     intent_graph_builder.add_node(
         "extract_signals",
         make_extract_signals_node(llm),
-        retry_policy=retry_policy,
+        retry=retry_policy,
     )
 
     intent_graph_builder.add_edge(START, "normalize_gate")

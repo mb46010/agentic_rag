@@ -1,9 +1,10 @@
 # src/agentic_rag/intent/state.py
 
-from typing import Annotated, Any, Dict, List, Literal, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 from langgraph.graph import StateGraph
 from langgraph.graph.message import add_messages
+from typing_extensions import TypedDict
 
 
 # reducer to append errors across nodes

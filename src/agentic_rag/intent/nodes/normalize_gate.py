@@ -69,7 +69,17 @@ def make_normalize_gate_node(llm):
             }
 
         try:
-            result: NormalizeModel = chain.invoke({"messages": user_messages})
+            # Use direct invocation instead of | pipe for better testability and stability with mocks
+            prompt_val = prompt.invoke({"messages": user_messages})
+            raw = model.invoke(prompt_val)
+
+            # Support both dict and Pydantic object
+            if isinstance(raw, NormalizeModel):
+                result = raw
+            elif hasattr(raw, "model_dump"):  # Handle potential duck-typing/other models
+                result = NormalizeModel.model_validate(raw.model_dump())
+            else:
+                result = NormalizeModel.model_validate(raw)
         except ValidationError as e:
             # model output didn't match schema
             return {

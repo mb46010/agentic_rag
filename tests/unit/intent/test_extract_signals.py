@@ -1,16 +1,17 @@
 # tests/unit/intent/test_extract_signals.py
 """Unit tests for extract_signals node."""
 
+from unittest.mock import MagicMock, patch
+
 import pytest
 from pydantic import ValidationError
-from unittest.mock import MagicMock
 
 from agentic_rag.intent.nodes.extract_signals import (
-    make_extract_signals_node,
+    AcronymModel,
+    EntityModel,
     ExtractSignalsModel,
     SignalsModel,
-    EntityModel,
-    AcronymModel,
+    make_extract_signals_node,
 )
 
 
@@ -62,10 +63,9 @@ class TestExtractSignalsNode:
             signals=SignalsModel(**mock_extract_signals_output["signals"]),
         )
 
-        # Mock the chain
-        mock_chain = MagicMock()
-        mock_chain.invoke.return_value = mock_result
-        mock_llm.with_structured_output.return_value = mock_chain
+        # Mock the chain behavior on mock_llm
+        mock_llm.with_structured_output.side_effect = None
+        mock_llm.with_structured_output.return_value.invoke.return_value = mock_result
 
         node = make_extract_signals_node(mock_llm)
         result = node(full_state)
@@ -85,12 +85,13 @@ class TestExtractSignalsNode:
         assert isinstance(result["signals"], dict)
 
         # Verify chain was called with context
-        call_args = mock_chain.invoke.call_args
+        call_args = mock_llm.with_structured_output.return_value.invoke.call_args
         assert call_args is not None
         invoke_input = call_args[0][0]
-        assert "messages" in invoke_input
-        assert "normalized_query" in invoke_input
-        assert "constraints" in invoke_input
+        # If it's a PromptValue, we can convert to string to check content
+        input_str = str(invoke_input)
+        assert "normalized_query" in input_str
+        assert "azure" in input_str.lower()
 
     def test_extract_signals_validation_error(self, mock_llm, sample_state, mock_normalize_output):
         """Test error handling when LLM output fails validation."""
@@ -101,6 +102,7 @@ class TestExtractSignalsNode:
         mock_chain.invoke.side_effect = ValidationError.from_exception_data(
             "test", [{"type": "missing", "loc": ("user_intent",), "msg": "Field required"}]
         )
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_extract_signals_node(mock_llm)
@@ -119,6 +121,7 @@ class TestExtractSignalsNode:
         # Mock chain that raises generic exception
         mock_chain = MagicMock()
         mock_chain.invoke.side_effect = RuntimeError("LLM API timeout")
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_extract_signals_node(mock_llm)
@@ -144,6 +147,7 @@ class TestExtractSignalsNode:
 
         mock_chain = MagicMock()
         mock_chain.invoke.return_value = mock_result
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_extract_signals_node(mock_llm)
@@ -224,13 +228,12 @@ class TestExtractSignalsNode:
             user_intent="troubleshoot",
             retrieval_intent="verification",
             answerability="internal_corpus",
-            signals=SignalsModel(
-                literal_terms=["ERROR-12345", "/var/log/app.log", "failed to connect"]
-            ),
+            signals=SignalsModel(literal_terms=["ERROR-12345", "/var/log/app.log", "failed to connect"]),
         )
 
         mock_chain = MagicMock()
         mock_chain.invoke.return_value = mock_result
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_extract_signals_node(mock_llm)
@@ -251,6 +254,7 @@ class TestExtractSignalsNode:
 
         mock_chain = MagicMock()
         mock_chain.invoke.return_value = mock_result
+        mock_llm.with_structured_output.side_effect = None
         mock_llm.with_structured_output.return_value = mock_chain
 
         node = make_extract_signals_node(mock_llm)
