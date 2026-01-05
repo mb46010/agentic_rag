@@ -17,8 +17,9 @@ def mock_llm():
     # Create a mock chain that's returned by with_structured_output
     mock_chain = MagicMock()
     llm.with_structured_output = MagicMock(return_value=mock_chain)
-    llm.__or__ = MagicMock(return_value=mock_chain)  # For prompt | model
     mock_chain.invoke = MagicMock()
+    # Ensure calling mock_chain directly (via RunnableLambda) calls invoke
+    mock_chain.side_effect = lambda *args, **kwargs: mock_chain.invoke(*args, **kwargs)
     llm._mock_chain = mock_chain  # Store reference for test access
     return llm
 

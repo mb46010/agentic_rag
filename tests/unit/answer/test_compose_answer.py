@@ -1,19 +1,17 @@
-# tests/unit/answer/test_compose_answer.py
-"""Unit tests for compose_answer node."""
-
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from pydantic import ValidationError
 
 from agentic_rag.answer.nodes.compose_answer import make_compose_answer_node
-from agentic_rag.answer.state import ComposeAnswerModel, Citation
+from agentic_rag.answer.state import Citation, ComposeAnswerModel
 
 
 class TestComposeAnswer:
     """Tests for compose_answer node."""
 
-    def test_successful_answer_composition(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_successful_answer_composition(self, mock_prompt, mock_llm, sample_answer_state):
         """Should successfully compose an answer."""
         # Mock the LLM response
         mock_output = ComposeAnswerModel(
@@ -31,7 +29,9 @@ class TestComposeAnswer:
             refusal=False,
         )
 
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         state = {**sample_answer_state, "answer_mode": "answer"}
 
@@ -47,7 +47,7 @@ class TestComposeAnswer:
         assert result["answer_meta"]["refusal"] is False
 
         # Verify chain was called
-        mock_llm._mock_chain.invoke.assert_called_once()
+        mock_chain.invoke.assert_called_once()
 
     def test_handles_missing_messages(self, mock_llm, sample_answer_state):
         """Should return error when messages are missing."""
@@ -82,11 +82,14 @@ class TestComposeAnswer:
         assert "errors" in result
         assert result["errors"][0]["type"] == "schema_validation"
 
-    def test_handles_validation_error(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_handles_validation_error(self, mock_prompt, mock_llm, sample_answer_state):
         """Should handle validation error from LLM output."""
-        # Mock chain to return invalid output that will fail validation
+        # Mock chain that returns invalid output that will fail validation
         invalid_output = {"final_answer": 123}  # Invalid type
-        mock_llm._mock_chain.invoke.return_value = invalid_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = invalid_output
 
         state = {**sample_answer_state, "answer_mode": "answer"}
 
@@ -98,10 +101,13 @@ class TestComposeAnswer:
         assert result["errors"][0]["type"] == "model_output_parse"
         assert result["errors"][0]["retryable"] is True
 
-    def test_handles_runtime_error(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_handles_runtime_error(self, mock_prompt, mock_llm, sample_answer_state):
         """Should handle runtime errors from LLM."""
         # Mock chain to raise an exception
-        mock_llm._mock_chain.invoke.side_effect = RuntimeError("API timeout")
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.side_effect = RuntimeError("API timeout")
 
         state = {**sample_answer_state, "answer_mode": "answer"}
 
@@ -114,7 +120,8 @@ class TestComposeAnswer:
         assert "API timeout" in result["errors"][0]["message"]
         assert result["errors"][0]["retryable"] is True
 
-    def test_passes_answer_mode_to_llm(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_passes_answer_mode_to_llm(self, mock_prompt, mock_llm, sample_answer_state):
         """Should pass answer_mode to LLM payload."""
         mock_output = ComposeAnswerModel(
             final_answer="Clarifying question",
@@ -124,7 +131,9 @@ class TestComposeAnswer:
             asked_clarification=True,
             refusal=False,
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         state = {**sample_answer_state, "answer_mode": "clarify"}
 
@@ -132,10 +141,11 @@ class TestComposeAnswer:
         result = node(state)
 
         # Verify the payload includes answer_mode
-        call_args = mock_llm._mock_chain.invoke.call_args[0][0]
+        call_args = mock_chain.invoke.call_args[0][0]
         assert call_args["answer_mode"] == "clarify"
 
-    def test_coerces_evidence_from_state(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_coerces_evidence_from_state(self, mock_prompt, mock_llm, sample_answer_state):
         """Should coerce evidence items from state."""
         mock_output = ComposeAnswerModel(
             final_answer="Answer",
@@ -143,7 +153,9 @@ class TestComposeAnswer:
             followups=[],
             used_evidence_ids=[],
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         # Include mixed valid and invalid evidence
         state = {
@@ -162,7 +174,8 @@ class TestComposeAnswer:
         call_args = mock_llm._mock_chain.invoke.call_args[0][0]
         assert len(call_args["final_evidence"]) == 2
 
-    def test_coerces_coverage_from_state(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_coerces_coverage_from_state(self, mock_prompt, mock_llm, sample_answer_state):
         """Should coerce coverage from state."""
         mock_output = ComposeAnswerModel(
             final_answer="Answer",
@@ -170,7 +183,9 @@ class TestComposeAnswer:
             followups=[],
             used_evidence_ids=[],
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         state = {
             **sample_answer_state,
@@ -186,10 +201,11 @@ class TestComposeAnswer:
         result = node(state)
 
         # Verify coverage was passed
-        call_args = mock_llm._mock_chain.invoke.call_args[0][0]
+        call_args = mock_chain.invoke.call_args[0][0]
         assert call_args["coverage"]["confidence"] == 0.9
 
-    def test_handles_invalid_coverage(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_handles_invalid_coverage(self, mock_prompt, mock_llm, sample_answer_state):
         """Should handle invalid coverage gracefully."""
         mock_output = ComposeAnswerModel(
             final_answer="Answer",
@@ -197,7 +213,9 @@ class TestComposeAnswer:
             followups=[],
             used_evidence_ids=[],
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         state = {**sample_answer_state, "coverage": "invalid"}
 
@@ -205,10 +223,11 @@ class TestComposeAnswer:
         result = node(state)
 
         # Should use default coverage
-        call_args = mock_llm._mock_chain.invoke.call_args[0][0]
+        call_args = mock_chain.invoke.call_args[0][0]
         assert call_args["coverage"]["confidence"] == 0.0
 
-    def test_merges_answer_meta(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_merges_answer_meta(self, mock_prompt, mock_llm, sample_answer_state):
         """Should merge answer_meta from state with new values."""
         mock_output = ComposeAnswerModel(
             final_answer="Answer",
@@ -218,7 +237,9 @@ class TestComposeAnswer:
             asked_clarification=False,
             refusal=False,
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         state = {
             **sample_answer_state,
@@ -238,7 +259,8 @@ class TestComposeAnswer:
         assert result["answer_meta"]["coverage_confidence"] == 0.8
         assert result["answer_meta"]["used_evidence_ids"] == ["ev_001"]
 
-    def test_includes_all_required_fields_in_payload(self, mock_llm, sample_answer_state):
+    @patch("agentic_rag.answer.nodes.compose_answer.ChatPromptTemplate")
+    def test_includes_all_required_fields_in_payload(self, mock_prompt, mock_llm, sample_answer_state):
         """Should include all required fields in LLM payload."""
         mock_output = ComposeAnswerModel(
             final_answer="Answer",
@@ -246,12 +268,14 @@ class TestComposeAnswer:
             followups=[],
             used_evidence_ids=[],
         )
-        mock_llm._mock_chain.invoke.return_value = mock_output
+        mock_chain = mock_llm._mock_chain
+        mock_prompt.from_messages.return_value.__or__ = lambda s, o: mock_chain
+        mock_chain.invoke.return_value = mock_output
 
         node = make_compose_answer_node(mock_llm)
         result = node(sample_answer_state)
 
-        call_args = mock_llm._mock_chain.invoke.call_args[0][0]
+        call_args = mock_chain.invoke.call_args[0][0]
 
         # Verify all required fields are present
         assert "messages" in call_args

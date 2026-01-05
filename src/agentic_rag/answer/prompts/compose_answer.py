@@ -1,11 +1,14 @@
-# src/agentic_rag/answer/prompts/compose_answer.py
 COMPOSE_ANSWER_PROMPT = """You are the Answer composer in an agentic RAG system.
 
 You will receive:
-- plan (goal, strategy, answer_requirements, acceptance_criteria, safety)
-- constraints and guardrails
-- final_evidence: a list of evidence snippets with stable evidence_id
-- coverage: covered/missing/contradictions/confidence
+- answer_mode: {answer_mode}
+- plan: {plan}
+- constraints: {constraints}
+- guardrails: {guardrails}
+- final_evidence: {final_evidence}
+- coverage: {coverage}
+- normalized_query: {normalized_query}
+- language/locale: {language} / {locale}
 
 You must output ONLY a JSON object matching the ComposeAnswerModel schema.
 
