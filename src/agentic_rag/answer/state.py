@@ -1,78 +1,117 @@
 # src/agentic_rag/answer/state.py
-from typing import Any, Dict, List, Literal, Optional
-from pydantic import BaseModel, Field
-from typing_extensions import TypedDict
+from __future__ import annotations
 
-# Answer modes
+from typing import Any, Dict, List, Literal, Optional, TypedDict
+
+from pydantic import BaseModel, ConfigDict, Field, confloat, conint
+
 AnswerMode = Literal["answer", "clarify", "refuse"]
 
+CitationStyle = Literal["none", "inline", "footnote"]
 
-# Coverage model
+# -------------------------
+# Evidence + coverage models
+# -------------------------
+
+
+class EvidenceItem(BaseModel):
+    """Minimal evidence contract the Answer stage can consume.
+
+    Keep this aligned with what the executor produces, but do not rely on executor internals.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    evidence_id: str = Field(..., min_length=1)
+    content: str = Field(..., min_length=1)
+
+    source: Optional[str] = None  # title/uri/display string
+    doc_id: Optional[str] = None
+    chunk_id: Optional[str] = None
+
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    scores: Dict[str, Any] = Field(default_factory=dict)
+    provenance: Dict[str, Any] = Field(default_factory=dict)
+
+
 class CoverageModel(BaseModel):
-    """Coverage assessment from executor."""
+    """Output from executor grading step (or a placeholder/no-op grader initially)."""
 
-    confidence: float = Field(default=0.0, ge=0.0, le=1.0)
+    model_config = ConfigDict(extra="forbid")
+
+    confidence: confloat(ge=0.0, le=1.0) = 0.0
     covered: List[str] = Field(default_factory=list)
     missing: List[str] = Field(default_factory=list)
     contradictions: List[str] = Field(default_factory=list)
 
 
-# Evidence item
-class EvidenceItem(BaseModel):
-    """Evidence item from executor."""
-
-    evidence_id: str
-    text: str = ""
-    source: Optional[str] = None
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+# -------------------------
+# Answer output models
+# -------------------------
 
 
-# Citation model
 class Citation(BaseModel):
-    """Citation for answer."""
+    model_config = ConfigDict(extra="forbid")
 
-    evidence_id: str
-    text: str = ""
-    source: Optional[str] = None
+    evidence_id: str = Field(..., min_length=1)
+    # Optional: location within answer text for UI highlighting
+    span_start: Optional[conint(ge=0)] = None
+    span_end: Optional[conint(ge=0)] = None
+    note: Optional[str] = None
 
 
-# Compose answer output model
-class ComposeAnswerModel(BaseModel):
-    """Output from compose_answer node."""
+class AnswerMeta(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
-    final_answer: str
-    citations: List[Citation] = Field(default_factory=list)
-    followups: List[str] = Field(default_factory=list)
+    answer_version: str = "answer_v1"
+    mode: AnswerMode = "answer"
     used_evidence_ids: List[str] = Field(default_factory=list)
+    coverage_confidence: float = 0.0
+    refusal: bool = False
+    asked_clarification: bool = False
+
+
+class ComposeAnswerModel(BaseModel):
+    """Structured output returned by the compose_answer LLM step."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    final_answer: str = Field(..., min_length=1)
+    citations: List[Citation] = Field(default_factory=list)
+    used_evidence_ids: List[str] = Field(default_factory=list)
+    followups: List[str] = Field(default_factory=list)
     asked_clarification: bool = False
     refusal: bool = False
 
 
-# Answer state
-class AnswerState(TypedDict, total=False):
-    """State for answer subgraph."""
+# -------------------------
+# LangGraph state
+# -------------------------
 
-    # Inputs from upstream
-    messages: List[Any]
-    plan: Dict[str, Any]
-    guardrails: Dict[str, Any]
-    constraints: Dict[str, Any]
+
+class AnswerState(TypedDict, total=False):
+    # From intake
+    messages: list
     normalized_query: str
-    final_evidence: List[Any]
-    coverage: Dict[str, Any]
+    constraints: Dict[str, Any]
+    guardrails: Dict[str, Any]
     language: Optional[str]
     locale: Optional[str]
 
-    # Answer gate output
-    answer_mode: AnswerMode
+    # From planner
+    plan: Dict[str, Any]  # PlannerState as dict
 
-    # Compose answer output
+    # From executor
+    final_evidence: List[Dict[str, Any]]  # list of EvidenceItem-like dicts
+    coverage: Dict[str, Any]  # CoverageModel-like dict
+    retrieval_report: Dict[str, Any]
+
+    # Answer stage outputs
+    answer_mode: AnswerMode
     final_answer: str
     citations: List[Dict[str, Any]]
     followups: List[str]
-
-    # Metadata
     answer_meta: Dict[str, Any]
 
-    # Errors
+    # Shared error channel
     errors: List[Dict[str, Any]]
