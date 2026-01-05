@@ -1,0 +1,10 @@
+{
+    "case_id": "c015_policy_strict_precision",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Quote the exact text of our data retention policy section 4.2 on log storage duration."
+        }
+    ],
+    "notes": "Strict precision/citation."
+}

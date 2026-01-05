@@ -1,0 +1,10 @@
+{
+    "case_id": "c011_policy_exceptions_process",
+    "messages": [
+        {
+            "role": "user",
+            "content": "What is the exception approval process for expense policy violations?"
+        }
+    ],
+    "notes": "Procedure-style internal policy query."
+}

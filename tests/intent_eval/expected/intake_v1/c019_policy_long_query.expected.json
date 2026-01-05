@@ -1,0 +1,9 @@
+{
+    "clarification": {
+        "needed": false,
+        "blocking": false
+    },
+    "user_intent": "plan",
+    "retrieval_intent": "procedure",
+    "answerability": "internal_corpus"
+}

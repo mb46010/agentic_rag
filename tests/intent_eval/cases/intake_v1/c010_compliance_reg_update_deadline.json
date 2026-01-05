@@ -1,0 +1,10 @@
+{
+    "case_id": "c010_compliance_reg_update_deadline",
+    "messages": [
+        {
+            "role": "user",
+            "content": "In our compliance regulation database, what is the latest deadline for GDPR breach notification?"
+        }
+    ],
+    "notes": "Verification lookup in internal corpus."
+}

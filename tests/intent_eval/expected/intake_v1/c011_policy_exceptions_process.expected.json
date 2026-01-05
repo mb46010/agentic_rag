@@ -1,0 +1,9 @@
+{
+    "clarification": {
+        "needed": false,
+        "blocking": false
+    },
+    "user_intent": "explain",
+    "retrieval_intent": "procedure",
+    "answerability": "internal_corpus"
+}

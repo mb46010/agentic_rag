@@ -1,0 +1,10 @@
+{
+    "case_id": "c017_policy_ambiguous_acronym",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Does our HR policy allow WFH?"
+        }
+    ],
+    "notes": "Ambiguous acronym WFH could be clear? Might still be ambiguous; expect non-blocking clarification."
+}
