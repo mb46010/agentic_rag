@@ -37,15 +37,15 @@ def make_executor_graph(
 
     g = StateGraph(ExecutorState)
 
-    g.add_node("executor_gate", executor_gate, retry_policy=retry_policy)
-    g.add_node("prepare_round_queries", make_prepare_round_queries_node(hyde), retry_policy=retry_policy)
-    g.add_node("run_retrieval", make_run_retrieval_node(retriever), retry_policy=retry_policy)
-    g.add_node("merge_candidates", make_merge_candidates_node(fusion), retry_policy=retry_policy)
-    g.add_node("rerank_candidates", make_rerank_candidates_node(reranker), retry_policy=retry_policy)
-    g.add_node("select_evidence", select_evidence, retry_policy=retry_policy)
-    g.add_node("grade_coverage", make_grade_coverage_node(grader), retry_policy=retry_policy)
-    g.add_node("should_continue", should_continue, retry_policy=retry_policy)
-    g.add_node("finalize_evidence_pack", finalize_evidence_pack, retry_policy=retry_policy)
+    g.add_node("executor_gate", executor_gate, retry=retry_policy)
+    g.add_node("prepare_round_queries", make_prepare_round_queries_node(hyde), retry=retry_policy)
+    g.add_node("run_retrieval", make_run_retrieval_node(retriever), retry=retry_policy)
+    g.add_node("merge_candidates", make_merge_candidates_node(fusion), retry=retry_policy)
+    g.add_node("rerank_candidates", make_rerank_candidates_node(reranker), retry=retry_policy)
+    g.add_node("select_evidence", select_evidence, retry=retry_policy)
+    g.add_node("grade_coverage", make_grade_coverage_node(grader), retry=retry_policy)
+    g.add_node("should_continue", should_continue, retry=retry_policy)
+    g.add_node("finalize_evidence_pack", finalize_evidence_pack, retry=retry_policy)
 
     g.add_edge(START, "executor_gate")
 

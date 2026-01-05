@@ -23,7 +23,7 @@ class EvidenceItem(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str = Field(..., min_length=1)
-    content: str = Field(..., min_length=1)
+    text: str = Field(..., min_length=1)
 
     source: Optional[str] = None  # title/uri/display string
     doc_id: Optional[str] = None
@@ -54,6 +54,8 @@ class Citation(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     evidence_id: str = Field(..., min_length=1)
+    text: Optional[str] = None
+    source: Optional[str] = None
     # Optional: location within answer text for UI highlighting
     span_start: Optional[conint(ge=0)] = None
     span_end: Optional[conint(ge=0)] = None

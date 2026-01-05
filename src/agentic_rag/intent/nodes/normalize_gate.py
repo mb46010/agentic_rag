@@ -17,7 +17,12 @@ logger = logging.getLogger(__name__)
 OBSERVE_ENABLED = os.getenv("LANGFUSE_ENABLED", "1") == "1"
 
 if OBSERVE_ENABLED:
-    from langfuse import observe
+    try:
+        from langfuse import observe
+    except ImportError:
+
+        def observe(fn=None, **kwargs):
+            return fn if fn else lambda f: f
 else:
 
     def observe(fn=None, **kwargs):

@@ -16,7 +16,7 @@ def make_answer_graph(llm, max_retries: int = 2):
     g = StateGraph(AnswerState)
 
     g.add_node("answer_gate", make_answer_gate_node())
-    g.add_node("compose_answer", make_compose_answer_node(llm), retry_policy=retry_policy)
+    g.add_node("compose_answer", make_compose_answer_node(llm), retry=retry_policy)
     g.add_node("postprocess_answer", make_postprocess_answer_node())
 
     g.add_edge(START, "answer_gate")
