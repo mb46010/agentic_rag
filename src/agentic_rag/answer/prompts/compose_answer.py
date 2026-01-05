@@ -28,7 +28,7 @@ Citations:
 
 Output fields:
 - final_answer: user-facing response
-- citations: list of {evidence_id, optional span_start/span_end, optional note}
+- citations: list of {{evidence_id, optional span_start/span_end, optional note}}
 - used_evidence_ids: list of evidence_id actually used
 - followups: optional, non-blocking follow-up questions
 - asked_clarification: true if you ask clarifying questions in final_answer
