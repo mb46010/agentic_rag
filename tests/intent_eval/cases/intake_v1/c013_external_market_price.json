@@ -1,0 +1,10 @@
+{
+    "case_id": "c013_external_market_price",
+    "messages": [
+        {
+            "role": "user",
+            "content": "What's the current price of Bitcoin and its 24h volume?"
+        }
+    ],
+    "notes": "External, not in internal corpus."
+}

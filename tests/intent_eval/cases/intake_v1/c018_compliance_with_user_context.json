@@ -1,0 +1,10 @@
+{
+    "case_id": "c018_compliance_with_user_context",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Using my region (EU), what customer data retention limits apply per our compliance database?"
+        }
+    ],
+    "notes": "Needs user context, non-blocking."
+}

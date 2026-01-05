@@ -1,0 +1,10 @@
+{
+    "case_id": "c005_crypto_kb_compare_consensus",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Using our crypto knowledge base, compare Proof of Work vs Proof of Stake and list key tradeoffs."
+        }
+    ],
+    "notes": "Checks: user_intent compare; retrieval_intent background/examples; answerability mixed (general knowledge + internal KB)."
+}

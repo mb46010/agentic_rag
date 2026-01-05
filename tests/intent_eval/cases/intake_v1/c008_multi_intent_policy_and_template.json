@@ -1,0 +1,10 @@
+{
+    "case_id": "c008_multi_intent_policy_and_template",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Find the parental leave policy and draft a short announcement email about it."
+        }
+    ],
+    "notes": "Multi-intent (lookup + draft)."
+}

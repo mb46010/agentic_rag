@@ -1,0 +1,10 @@
+{
+    "case_id": "c020_crypto_kb_entity_extraction",
+    "messages": [
+        {
+            "role": "user",
+            "content": "From our crypto knowledge base, list the key entities involved in the Ethereum merge and their roles."
+        }
+    ],
+    "notes": "Extraction intent."
+}

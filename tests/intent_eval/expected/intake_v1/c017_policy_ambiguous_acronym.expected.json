@@ -1,0 +1,5 @@
+{
+    "user_intent": "lookup",
+    "retrieval_intent": "procedure",
+    "answerability": "internal_corpus"
+}

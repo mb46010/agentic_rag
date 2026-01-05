@@ -1,0 +1,10 @@
+{
+    "case_id": "c009_crypto_incident_troubleshoot",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Our crypto node keeps reporting 'finalized block mismatch'. What does that error mean and how do we resolve it?"
+        }
+    ],
+    "notes": "Troubleshoot with quoted error-like string."
+}

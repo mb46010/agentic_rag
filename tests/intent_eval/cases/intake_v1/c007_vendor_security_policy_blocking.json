@@ -1,0 +1,10 @@
+{
+    "case_id": "c007_vendor_security_policy_blocking",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Our vendor security policy mentions the 'SLA Tier 2' requirement. What exactly is Tier 2 in our policy?"
+        }
+    ],
+    "notes": "Ambiguous internal policy term; expect clarification blocking."
+}
