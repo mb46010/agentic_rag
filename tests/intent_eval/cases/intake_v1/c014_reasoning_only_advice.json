@@ -1,0 +1,10 @@
+{
+    "case_id": "c014_reasoning_only_advice",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Give me tips for structuring an engineering retrospective agenda."
+        }
+    ],
+    "notes": "Reasoning-only advice."
+}

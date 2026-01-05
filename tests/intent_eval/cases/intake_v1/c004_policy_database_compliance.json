@@ -1,0 +1,10 @@
+{
+    "case_id": "c004_policy_database_compliance",
+    "messages": [
+        {
+            "role": "user",
+            "content": "In our company policy database, what is the current travel reimbursement policy for flights over $1,000? Please cite the policy section."
+        }
+    ],
+    "notes": "Checks: user_intent lookup; retrieval_intent verification/evidence; answerability internal_corpus; expects citations."
+}

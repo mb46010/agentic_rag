@@ -1,0 +1,10 @@
+{
+    "case_id": "c006_compliance_reg_database",
+    "messages": [
+        {
+            "role": "user",
+            "content": "From our compliance regulation database, what does Regulation Z require for disclosure timing in consumer credit? Please cite the exact rule."
+        }
+    ],
+    "notes": "Checks: user_intent lookup; retrieval_intent verification; answerability internal_corpus; likely needs citations."
+}

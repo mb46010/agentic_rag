@@ -1,0 +1,10 @@
+{
+    "case_id": "c016_compliance_multi_domain",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Summarize how SOX and HIPAA differ in record retention requirements using our compliance database."
+        }
+    ],
+    "notes": "Multi-domain compliance comparison."
+}

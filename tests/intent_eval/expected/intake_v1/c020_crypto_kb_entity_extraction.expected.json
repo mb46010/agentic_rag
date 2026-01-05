@@ -1,0 +1,9 @@
+{
+    "clarification": {
+        "needed": false,
+        "blocking": false
+    },
+    "user_intent": "extract",
+    "retrieval_intent": "background",
+    "answerability": "mixed"
+}

@@ -1,0 +1,10 @@
+{
+    "case_id": "c019_policy_long_query",
+    "messages": [
+        {
+            "role": "user",
+            "content": "We are updating the onboarding workflow. Please outline the steps required by HR, IT, and Security policies for provisioning laptops, accounts, and access badges."
+        }
+    ],
+    "notes": "Long multi-entity procedure query."
+}

@@ -1,0 +1,9 @@
+{
+    "clarification": {
+        "needed": false,
+        "blocking": false
+    },
+    "user_intent": "lookup",
+    "retrieval_intent": "verification",
+    "answerability": "external"
+}

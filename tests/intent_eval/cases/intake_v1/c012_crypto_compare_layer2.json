@@ -1,0 +1,10 @@
+{
+    "case_id": "c012_crypto_compare_layer2",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Compare Optimistic Rollups vs zkRollups using our crypto knowledge base."
+        }
+    ],
+    "notes": "Compare intent, background retrieval."
+}

@@ -1,0 +1,12 @@
+{
+    "clarification": {
+        "needed": false,
+        "blocking": false
+    },
+    "user_intent": "troubleshoot",
+    "retrieval_intent": "examples",
+    "answerability": "mixed",
+    "artifact_flags_contains": [
+        "has_quoted_strings"
+    ]
+}
