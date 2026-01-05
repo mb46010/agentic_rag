@@ -1,0 +1,46 @@
+{
+    "case_id": "c001_simple_retrieval",
+    "messages": [
+        {
+            "role": "user",
+            "content": "How do I configure Azure OpenAI for production use?"
+        }
+    ],
+    "normalized_query": "configure Azure OpenAI for production use",
+    "constraints": {
+        "domain": ["azure"],
+        "format": [],
+        "prohibitions": [],
+        "nonfunctional": ["high_precision"]
+    },
+    "guardrails": {
+        "time_sensitivity": "low",
+        "context_dependency": "weak",
+        "sensitivity": "normal",
+        "pii_present": false
+    },
+    "clarification": {
+        "needed": false,
+        "blocking": false,
+        "reasons": []
+    },
+    "user_intent": "plan",
+    "retrieval_intent": "procedure",
+    "answerability": "internal_corpus",
+    "complexity_flags": ["requires_synthesis"],
+    "signals": {
+        "entities": [
+            {
+                "text": "Azure OpenAI",
+                "type": "product",
+                "confidence": "high"
+            }
+        ],
+        "acronyms": [],
+        "artifact_flags": [],
+        "literal_terms": []
+    },
+    "language": "en",
+    "locale": "en-US",
+    "notes": "Simple retrieval case: should produce retrieve_then_answer strategy with 1-2 rounds (recall, maybe precision). No literal constraints, hybrid retrieval preferred."
+}

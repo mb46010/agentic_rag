@@ -11,7 +11,7 @@ OBSERVE_ENABLED = os.getenv("LANGFUSE_ENABLED", "1") == "1"
 
 if OBSERVE_ENABLED:
     try:
-        from langfuse.decorators import observe
+        from langfuse import observe
     except ImportError:
 
         def observe(fn=None, **kwargs):

@@ -1,0 +1,46 @@
+{
+    "case_id": "c002_troubleshoot_literal",
+    "messages": [
+        {
+            "role": "user",
+            "content": "Getting ERROR-429 'Rate limit exceeded' when calling Azure OpenAI. How do I fix this?"
+        }
+    ],
+    "normalized_query": "fix ERROR-429 rate limit exceeded Azure OpenAI",
+    "constraints": {
+        "domain": ["azure"],
+        "format": [],
+        "prohibitions": [],
+        "nonfunctional": ["high_precision"]
+    },
+    "guardrails": {
+        "time_sensitivity": "high",
+        "context_dependency": "weak",
+        "sensitivity": "normal",
+        "pii_present": false
+    },
+    "clarification": {
+        "needed": false,
+        "blocking": false,
+        "reasons": []
+    },
+    "user_intent": "troubleshoot",
+    "retrieval_intent": "verification",
+    "answerability": "internal_corpus",
+    "complexity_flags": ["requires_strict_precision"],
+    "signals": {
+        "entities": [
+            {
+                "text": "Azure OpenAI",
+                "type": "product",
+                "confidence": "high"
+            }
+        ],
+        "acronyms": [],
+        "artifact_flags": ["has_ids"],
+        "literal_terms": ["ERROR-429", "Rate limit exceeded"]
+    },
+    "language": "en",
+    "locale": "en-US",
+    "notes": "Troubleshooting with literal terms: should set literal_constraints.must_preserve_terms=['ERROR-429', 'Rate limit exceeded'], use_hyde=false, prefer bm25 or hybrid with low alpha. Strategy: retrieve_then_answer."
+}
