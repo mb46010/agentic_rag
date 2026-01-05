@@ -220,5 +220,8 @@ class IntakeState(TypedDict, total=False):
     intake_version: str  # eg "intake_v1"
     debug_notes: Optional[str]  # avoid putting chain-of-thought here; keep it short
 
+    # Planner output (added to support planner graph)
+    plan: Optional[Dict[str, Any]]  # PlannerState from planner subgraph
+
     # Error handling (APPEND semantics across nodes)
     errors: Annotated[List[IntakeError], add_errors]
