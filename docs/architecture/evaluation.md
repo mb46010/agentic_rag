@@ -1,102 +1,71 @@
 # Evaluation Architecture
 
-This project uses a pragmatic evaluation setup based on `pytest` + local artifacts on disk. The goal is to enforce contracts early (schema + key behaviors) while keeping iteration fast and reviewable before investing in heavier observability (Langfuse, dashboards, etc.).
+This project uses a pragmatic evaluation setup based on `pytest` and local artifacts on disk. The goal is to enforce contracts early (schema + key behaviors) while keeping iteration fast and reviewable before investing in heavier observability (e.g., LangSmith, dashboards).
 
-## Goals
+## 🎯 Goals
 
-- Catch breakages early (schema and prompt/template regressions)
-- Lock down a small set of stable, high-signal behaviors
-- Track drift over time without blocking progress (soft failures)
-- Produce artifacts for review and for creating expected labels
+- **Catch breakages early**: Detect schema shifts and prompt/template regressions before they reach production.
+- **Lock down stable behaviors**: Use behavior contracts for high-signal responses.
+- **Track drift over time**: Implement soft failures for stability tracking while prompts evolve.
+- **Reviewable Artifacts**: Produce on-disk state for manual review and for bootstrapping expected labels.
 
-Non-goals (for now)
-- Full online eval pipelines or hosted experiment tracking
-- Large-scale statistical evaluation (later with Ragas/deepeval if needed)
+**Non-goals (for now):**
+- Full online evaluation pipelines or hosted experiment tracking.
+- Large-scale statistical evaluation (can be added later with Ragas/deepeval).
 
-## Test categories (exact)
+---
+
+## 🏗️ Test Categories
 
 Tests live under: `tests/intent_eval/`
 
-### 1) `test_schema_contract.py` (hard fail)
+### 1. `test_schema_contract.py` (**Hard Fail**)
+**Purpose:**
+- Validate the graph runs end-to-end for each test case.
+- Ensure required top-level keys exist in the resulting state.
+- Validate that data types match the schema and are non-empty where required.
+- Ensure no errors were recorded during execution (`errors == []`).
 
-Purpose:
-- Validate the graph runs end-to-end for each case
-- Validate required top-level keys exist
-- Validate types are correct and non-empty where required
-- Validate `errors == []`
+**Assertions:**
+- **Presence of keys**: `normalized_query`, `constraints`, `guardrails`, `clarification`, `user_intent`, `retrieval_intent`, `answerability`, `complexity_flags`, `signals`.
+- **Typing**: `normalized_query` is a non-empty string; `constraints`, `guardrails`, `clarification`, and `signals` are dictionary-like; `complexity_flags` is a list.
 
-What it should assert:
-- Presence of keys like:
-  - `normalized_query`, `constraints`, `guardrails`, `clarification`
-  - `user_intent`, `retrieval_intent`, `answerability`, `complexity_flags`, `signals`
-- Types:
-  - `normalized_query` is non-empty string
-  - `constraints`, `guardrails`, `clarification`, `signals` are dict-like
-  - `complexity_flags` is list
-- Optional but recommended:
-  - `intake_version` exists and matches expected prefix
+### 2. `test_behavior_contract.py` (**Hard Fail**)
+**Purpose:**
+- Assert a small, curated set of stable behaviors on reviewed test cases.
+- Act as "guardrails" against prompt drift.
+- Only assert fields you intentionally want to remain stable.
 
-This test should not assert semantic correctness beyond minimal invariants.
+**Typical Assertions:**
+- `normalized_query_contains`: Substrings that must appear in the normalized output.
+- `constraints_format_contains`: Specific subsets like `["no_code"]`.
+- `clarification`: Check `needed` boolean and `reasons_contains`.
+- **Core Labels**: `user_intent`, `retrieval_intent`, `answerability`.
 
-### 2) `test_behavior_contract.py` (hard fail, small labeled subset)
+### 3. `test_stability.py` (**Soft Fail**)
+**Purpose:**
+- Measure output drift across repeated runs (same model, same prompt, same input).
+- Provides visibility into non-deterministic behavior without blocking CI.
 
-Purpose:
-- Assert a SMALL, curated set of stable behaviors on reviewed cases
-- Only assert fields you intentionally want to keep stable
-- Make these tests the "guardrails" against prompt drift
+**Key Metrics:**
+- Intent label agreement rate across $N$ runs (per case).
+- Jaccard overlap for `complexity_flags` and `signals`.
+- Presence/absence stability for `clarification.needed`.
 
-Typical assertions (when present in expected file):
-- `normalized_query_contains`: list of substrings that must appear
-- `constraints_format_contains`: expected subset like `["no_code"]`
-- `clarification.needed` and `clarification.reasons_contains`
-- core labels:
-  - `user_intent`
-  - `retrieval_intent`
-  - `answerability`
+---
 
-Important rule:
-- Expected files should include only what you want to assert.
-- Avoid asserting every extracted entity/acronym early, those drift a lot.
+## 📁 Case and Expected File Layout
 
-### 3) `test_stability.py` (soft fail initially)
+We use a simple file-based convention for cases and expectations:
 
-Purpose:
-- Measure output drift across repeated runs (same model, same prompt)
-- Non-blocking at first while prompts are still evolving
-- Later can be turned into hard fail with thresholds
+- **Input cases**: `tests/intent_eval/cases/intake_v1/*.json`
+- **Expected labels**: `tests/intent_eval/expected/intake_v1/*.expected.json`
 
-Typical metrics:
-- Intent label agreement rate across N runs (per case)
-- Jaccard overlap for `complexity_flags`
-- Presence/absence stability for `clarification.needed`
-- (optional) normalized_query similarity checks (contains-based, not exact)
+### Example
+- **Input**: `c001_internal_procedure_no_code.json`
+- **Expected**: `c001_internal_procedure_no_code.expected.json`
 
-Recommended approach:
-- Run each case `N=3..5` times
-- Save all outputs to artifacts
-- Compute drift metrics and compare to thresholds
-- Initially report-only; later gate merges
-
-## Case and expected file layout
-
-A simple convention:
-
-- Input cases:
-  - `tests/intent_eval/cases/intake_v1/*.json`
-
-- Expected labels (for behavior contracts):
-  - `tests/intent_eval/expected/intake_v1/*.expected.json`
-
-Suggested naming:
-- input: `c001_internal_procedure_no_code.json`
-- expected: `c001_internal_procedure_no_code.expected.json`
-
-Each input case should include:
-- `case_id`: stable identifier
-- `messages`: the minimal messages list
-
-Each expected file should include only asserted keys, for example:
-
+**Expected File Format Example:**
 ```json
 {
   "constraints_format_contains": ["no_code"],
@@ -107,161 +76,78 @@ Each expected file should include only asserted keys, for example:
   "retrieval_intent": "procedure",
   "answerability": "internal_corpus"
 }
+```
 
-Artifact storage (local, review-first)
+---
 
-All tests and helper utilities write artifacts to:
+## 📦 Artifact Storage
 
-artifacts/intent_eval/<run_id>/...
+All tests and helper utilities write artifacts to: `artifacts/intent_eval/<run_id>/`
 
-Suggested per-case artifact set:
+### Per-case Artifact Set:
+- `<case_id>.input.json`: The original input message(s).
+- `<case_id>.final_state.json`: The complete state output from the graph.
+- `<case_id>.expected.json`: The asserted values (if a behavior contract exists).
 
-<case_id>.input.json
+**Why artifacts matter:**
+- **Review**: Inspect outputs without needing to rebuild or rerun expensive LLM calls.
+- **Bootstrap**: Generate expected labels directly from reviewed and approved outputs.
+- **Compare**: Diff outputs across different commits or prompt versions to visualize drift.
 
-<case_id>.final_state.json
+---
 
-<case_id>.expected.json (if behavior contract exists)
+## 🔄 Helper Workflow
 
-Artifacts should be JSON-serializable:
+Promoting a new test case to a behavior contract:
 
-Convert LangChain messages to dicts via a JSON default function
+1. **Add input file** under `tests/intent_eval/cases/intake_v1/`.
+2. **Run the helper script** to execute the intake graph and write output to `artifacts/`.
+3. **Review the JSON output** to decide which fields are stable enough to assert.
+4. **Create an expected file** with only those assertions in `tests/intent_eval/expected/intake_v1/`.
+5. **Run the suite**:
+   ```bash
+   pytest tests/intent_eval/test_behavior_contract.py -q
+   ```
 
-Avoid dumping raw objects
+---
 
-Why artifacts matter:
+## 🚀 Running the Suite
 
-You can review outputs without rerunning
+Typical commands for different evaluation needs:
 
-You can generate expected labels from reviewed outputs
+- **Smoke tests**: `pytest tests/intent_eval/test_smoke.py -q`
+- **Schema tests**: `pytest tests/intent_eval/test_schema_contract.py -q`
+- **Behavior tests**: `pytest tests/intent_eval/test_behavior_contract.py -q`
+- **Stability tests**: `pytest tests/intent_eval/test_stability.py -q`
 
-You can compare drift across commits
+**Recommended flags:**
+- `-s`: Print artifacts/debug info during execution.
+- `-vv`: Detailed diagnostics for timeouts or retries.
+- `--timeout=NN`: Prevents suite hangs if an LLM request gets stuck.
 
-Helper workflow: promote a new case to behavior contract
+---
 
-Recommended loop:
+## ⚙️ Timeouts and Retries
 
-Add input file under:
+Because tests call live LLMs:
+- Set retry policies on LangGraph nodes carefully (e.g., `max_attempts=1` or `2` for CI).
+- Favor transport-level timeouts in the LLM client configuration to fail fast.
+- Disable retries in stability tests to ensure you are measuring raw model drift.
 
-tests/intent_eval/cases/intake_v1/
+---
 
-Run the helper that:
+## 📌 Model Configuration
 
-executes the intake graph
+To keep evaluations meaningful:
+- **Pin model names** in fixtures (e.g., `gpt-4o`).
+- **Pin temperature** to `0.0`.
+- **Bump versions**: When changing a prompt or model, increment the `intake_version` and re-review drift.
 
-writes output to artifacts
+---
 
-Review output JSON:
+## ✨ Next Extensions
 
-decide which fields are stable enough to assert
-
-Create an expected file with only those assertions:
-
-tests/intent_eval/expected/intake_v1/<case>.expected.json
-
-Run:
-
-pytest tests/intent_eval/test_behavior_contract.py -q
-
-If the model sometimes flips labels, reduce assertions to more robust ones:
-
-use *_contains lists instead of exact strings
-
-assert clarification.needed but not the full reasons list
-
-assert subsets not full lists
-
-Running the suite
-
-Typical commands:
-
-smoke only:
-
-pytest tests/intent_eval/test_smoke.py -q
-
-schema contracts only:
-
-pytest tests/intent_eval/test_schema_contract.py -q
-
-behavior contracts:
-
-pytest tests/intent_eval/test_behavior_contract.py -q
-
-stability:
-
-pytest tests/intent_eval/test_stability.py -q
-
-Recommended flags:
-
--s when debugging prompts / printing artifacts
-
--vv when diagnosing timeouts and retries
-
---timeout=NN if you use pytest-timeout for stuck requests
-
-Timeouts and retries
-
-Because tests call an LLM:
-
-set retry policy on LangGraph nodes carefully
-
-consider disabling retries in tests to avoid long hangs
-
-Practical guidance:
-
-for schema and behavior tests:
-
-max_attempts=1 or 2 (keep fast and deterministic)
-
-for stability tests:
-
-max_attempts=1 (you want to measure drift, not recovery)
-
-Also prefer setting per-request timeouts in the LLM client configuration (transport-level), so failures are fast and explicit.
-
-Model/config pinning
-
-To keep evals meaningful:
-
-pin model name in fixture (example: gpt-4.1)
-
-pin temperature to 0.0
-
-keep max_tokens high enough to avoid truncation causing schema failures
-
-When changing model or prompt versions:
-
-bump intake_version
-
-run schema + behavior tests and re-review drift
-
-Optional: disabling unwanted pytest plugins
-
-Some dependencies may pull in plugins (example: langsmith).
-To avoid side effects:
-
-disable via pytest.ini:
-
-
-
-[pytest]
-addopts = -v --strict-markers -p no:langsmith
-
-This prevents plugin hooks from affecting runtime, logging, or network usage.
-
-Next extensions
-
-When you add the planner and executor:
-
-mirror the same test structure per component:
-
-schema contract for PlannerState
-
-behavior contract for plan choices and stop conditions
-
-stability tests for plan drift and round counts
-
-Later, when retrieval is real:
-
-add retrieval correctness tests with mocked adapters
-
-add end-to-end evals (Ragas/deepeval) only after you have stable execution traces
+As the project grows, we will mirror this structure for:
+- **Planner Subgraph**: Schema contracts for `PlannerState`, behavior contracts for strategy choices.
+- **Executor Subgraph**: Stability tests for retrieval round counts and quality.
+- **End-to-End**: Ragas/deepeval scores once execution traces are stable.
